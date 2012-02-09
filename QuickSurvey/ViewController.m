@@ -9,6 +9,10 @@
 #import "ViewController.h"
 
 @implementation ViewController
+@synthesize name;
+@synthesize email;
+@synthesize catColor;
+@synthesize resultsView;
 
 - (void)didReceiveMemoryWarning
 {
@@ -26,6 +30,11 @@
 
 - (void)viewDidUnload
 {
+    [self setName:nil];
+    [self setEmail:nil];
+    [self setCatColor:nil];
+    [self setResultsView:nil];
+  
     [super viewDidUnload];
     // Release any retained subviews of the main view.
     // e.g. self.myOutlet = nil;
@@ -61,4 +70,63 @@
   }
 }
 
+- (IBAction)storeResults:(id)sender {
+  NSString *csvLine = [NSString stringWithFormat:@"%@,%@,%@\n", self.name.text, self.email.text, self.catColor.text];
+  NSString *docDir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+  NSString *surveyFile = [docDir stringByAppendingPathComponent:@"surveyresults.csv"];
+  
+  NSFileManager *defaultManager = [NSFileManager defaultManager];
+  
+  if (![defaultManager fileExistsAtPath:surveyFile]) {
+    [defaultManager createFileAtPath:surveyFile contents:nil attributes:nil];
+  }
+  
+  NSFileHandle *handle = [NSFileHandle fileHandleForUpdatingAtPath:surveyFile];
+  [handle seekToEndOfFile];
+  [handle writeData:[csvLine dataUsingEncoding:NSUTF8StringEncoding]];
+  [handle closeFile];
+  
+  self.name.text = @"";
+  self.email.text = @"";
+  self.catColor.text = @"";
+}
+
+- (IBAction)readResults:(id)sender {
+  NSString *docDir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+  NSString *surveyFile = [docDir stringByAppendingPathComponent:@"surveyresults.csv"];
+  
+  NSFileManager *defaultManager = [NSFileManager defaultManager];
+
+  if (![defaultManager fileExistsAtPath:surveyFile]) {
+    return;
+  } else {
+    NSFileHandle *handle = [NSFileHandle fileHandleForReadingAtPath:surveyFile];
+    NSString *surveyResults = [[NSString alloc] initWithData:[handle availableData] encoding:NSUTF8StringEncoding];
+    [handle closeFile];
+    self.resultsView.text = surveyResults;
+  }
+}
+
+- (IBAction)hideKeyboard:(id)sender {
+  [self.view endEditing:YES];
+}
 @end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
